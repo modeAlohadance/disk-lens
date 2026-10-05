@@ -1,0 +1,32 @@
+name: Build Windows release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'New version tag (e.g. v0.1.0)'
+        required: true
+        default: v0.1.0
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests -v
+      - run: python app.py --smoke
+      - run: python -m pip install -r requirements-build.txt
+      - run: python -m PyInstaller --noconfirm --onefile --windowed --name DiskLens app.py
+      - run: python -c "import subprocess; subprocess.run(['dist/DiskLens.exe', '--smoke'], check=True, timeout=60)"
+      - name: Publish EXE and checksum
+        run: python .github/release.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          APP_NAME: DiskLens
