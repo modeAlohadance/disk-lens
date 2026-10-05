@@ -19,7 +19,7 @@ class Tests(unittest.TestCase):
             self.assertEqual((result.count, result.total), (3, 32))
             self.assertEqual(result.extensions['.txt'], [2, 1])
             self.assertEqual(result.folders['./nested'], [30, 1])
-            self.assertEqual(result.largest, [(30, str(root / 'nested' / 'large.bin'))])
+            self.assertEqual(result.largest, [(30, str((root / 'nested' / 'large.bin').resolve()))])
             out = root / 'report.csv'
             export_csv(result, out)
             with out.open(encoding='utf-8-sig', newline='') as f:
